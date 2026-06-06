@@ -1,6 +1,5 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+@config "../tailwind.config.ts";
 
 @layer base {
   :root {
@@ -24,26 +23,37 @@
     --input: 214.3 31.8% 91.4%;
     --ring: 222.2 84% 4.9%;
     --radius: 0.5rem;
+    
+    /* Font Kustom */
+    --font-jakarta: 'Plus Jakarta Sans', sans-serif;
   }
 }
 
 @layer base {
   * {
-    /* Mengganti @apply border-border menjadi CSS murni */
     border-color: hsl(var(--border));
+    box-sizing: border-box;
+  }
+  html {
+    scroll-behavior: smooth;
   }
   body {
-    /* Mengganti @apply bg-background text-foreground menjadi CSS murni */
     background-color: hsl(var(--background));
     color: hsl(var(--foreground));
   }
 }
 
-/* Kustomisasi scrollbar agar rapi seperti desainmu */
-.scrollbar-hide::-webkit-scrollbar {
-    display: none;
-}
-.scrollbar-hide {
+@layer utilities {
+  .font-jakarta {
+    font-family: var(--font-jakarta);
+  }
+
+  /* Kustomisasi scrollbar agar rapi seperti desainmu */
+  .scrollbar-hide {
     -ms-overflow-style: none;
     scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
 }
