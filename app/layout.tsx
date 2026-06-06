@@ -1,32 +1,28 @@
-  import type { Metadata } from "next";
-  import { Inter, Geist } from "next/font/google";
-  import "./globals.css";
-  import Navbar from "@/components/layout/navbar";
-import { cn } from "@/lib/utils";
+import type { Metadata } from "next"
+import { Plus_Jakarta_Sans } from "next/font/google"
+import "./globals.css"
 
-const geist = Geist({subsets:['latin'],variable:'--font-sans'});
+const jakarta = Plus_Jakarta_Sans({
+  subsets: ["latin"],
+  variable: "--font-jakarta",
+  weight: ["400", "500", "600", "700", "800"],
+})
 
-  const inter = Inter({ subsets: ["latin"] });
+export const metadata: Metadata = {
+  title: "Barling-GO",
+  description: "Jelajahi Barlingmascakep",
+}
 
-  export const metadata: Metadata = {
-    title: "Barling-GO | E-Commerce Wisata & UMKM",
-    description: "Platform digital pariwisata dan UMKM wilayah Barlingmascakep",
-  };
-
-  export default function RootLayout({
-    children,
-  }: Readonly<{
-    children: React.ReactNode;
-  }>) {
-    return (
-      <html lang="id" className={cn("font-sans", geist.variable)}>
-        <body className={inter.className}>
-          <Navbar />
-          {/* Children adalah isi dari halaman yang sedang dibuka */}
-          <div className="min-h-screen bg-gray-50">
-            {children} 
-          </div>
-        </body>
-      </html>
-    );
-  }
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
+  return (
+    <html lang="id" className={jakarta.variable}>
+      <body className="font-jakarta antialiased bg-white text-gray-900">
+        {children}
+      </body>
+    </html>
+  )
+}

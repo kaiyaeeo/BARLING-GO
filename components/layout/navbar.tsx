@@ -1,40 +1,109 @@
-    import Link from 'next/link'
-    import { ShoppingCart, User, Menu } from 'lucide-react'
+    "use client"
+
+    import Link from "next/link"
+    import { useState, useEffect } from "react"
+    import { Menu, X, ShoppingCart, Search, User } from "lucide-react"
+
+    const navLinks = [
+    { label: "Home", href: "/" },
+    { label: "Wisata", href: "/wisata" },
+    { label: "Kuliner", href: "/kuliner" },
+    { label: "Oleh-Oleh", href: "/oleh-oleh" },
+    { label: "AI Assistant", href: "/ai-assistant" },
+    ]
 
     export default function Navbar() {
+    const [scrolled, setScrolled] = useState(false)
+    const [mobileOpen, setMobileOpen] = useState(false)
+
+    useEffect(() => {
+        const onScroll = () => setScrolled(window.scrollY > 20)
+        window.addEventListener("scroll", onScroll)
+        return () => window.removeEventListener("scroll", onScroll)
+    }, [])
+
     return (
-        <nav className="sticky top-0 z-50 w-full border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60">
-        <div className="container mx-auto flex h-16 items-center justify-between px-4">
-            {/* Logo & Navigasi Kiri */}
-            <div className="flex items-center gap-8">
-            <Link href="/" className="flex items-center space-x-2">
-                <span className="text-2xl font-bold text-blue-700 tracking-tighter">BARLING-GO</span>
+        <header
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+            scrolled
+            ? "bg-white/95 backdrop-blur-md shadow-sm"
+            : "bg-white"
+        }`}
+        >
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center justify-between h-16">
+            {/* Logo */}
+            <Link href="/" className="flex items-center gap-2 shrink-0">
+                <div className="flex items-center">
+                <span className="text-xl font-bold text-gray-900 tracking-tight">
+                    BARLING
+                </span>
+                <span className="text-xl font-bold text-[#4CAF50] tracking-tight">GO</span>
+                <div className="ml-0.5 w-2 h-2 rounded-full bg-[#FF6B35] -mt-3" />
+                </div>
             </Link>
-            <div className="hidden md:flex gap-6 text-sm font-medium text-gray-600">
-                {/* Link ke halaman publik sesuai struktur */}
-                <Link href="/wisata" className="hover:text-blue-600 transition-colors">Wisata</Link>
-                <Link href="/kuliner" className="hover:text-blue-600 transition-colors">Kuliner</Link>
-                <Link href="/oleh-oleh" className="hover:text-blue-600 transition-colors">Oleh-oleh</Link>
-            </div>
+
+            {/* Desktop Nav */}
+            <nav className="hidden md:flex items-center gap-1">
+                {navLinks.map((link) => (
+                <Link
+                    key={link.href}
+                    href={link.href}
+                    className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-all"
+                >
+                    {link.label}
+                </Link>
+                ))}
+            </nav>
+
+            {/* Right actions */}
+            <div className="hidden md:flex items-center gap-2">
+                <button className="p-2 text-gray-500 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-all">
+                <Search size={18} />
+                </button>
+                <button className="p-2 text-gray-500 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-all relative">
+                <ShoppingCart size={18} />
+                <span className="absolute top-1 right-1 w-1.5 h-1.5 bg-[#FF6B35] rounded-full" />
+                </button>
+                <Link
+                href="/login"
+                className="ml-2 px-5 py-2 text-sm font-semibold text-white bg-[#2D7D46] hover:bg-[#236338] rounded-lg transition-all"
+                >
+                Login
+                </Link>
             </div>
 
-            {/* Navigasi Kanan (Keranjang & Akun) */}
-            <div className="flex items-center gap-4">
-            <Link href="/keranjang" className="p-2 hover:bg-gray-100 rounded-full relative">
-                <ShoppingCart className="h-5 w-5 text-gray-700" />
-                <span className="absolute top-0 right-0 h-4 w-4 rounded-full bg-red-500 text-[10px] font-bold text-white flex items-center justify-center">
-                2
-                </span>
-            </Link>
-            <Link href="/login" className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700 transition-colors">
-                <User className="h-4 w-4" />
-                <span>Masuk</span>
-            </Link>
-            <button className="md:hidden p-2">
-                <Menu className="h-5 w-5" />
+            {/* Mobile toggle */}
+            <button
+                className="md:hidden p-2 text-gray-600 hover:bg-gray-50 rounded-lg"
+                onClick={() => setMobileOpen(!mobileOpen)}
+            >
+                {mobileOpen ? <X size={20} /> : <Menu size={20} />}
             </button>
             </div>
         </div>
-        </nav>
+
+        {/* Mobile menu */}
+        {mobileOpen && (
+            <div className="md:hidden bg-white border-t border-gray-100 px-4 pb-4">
+            {navLinks.map((link) => (
+                <Link
+                key={link.href}
+                href={link.href}
+                className="block py-3 text-sm font-medium text-gray-700 border-b border-gray-50"
+                onClick={() => setMobileOpen(false)}
+                >
+                {link.label}
+                </Link>
+            ))}
+            <Link
+                href="/login"
+                className="mt-3 block text-center py-2.5 text-sm font-semibold text-white bg-[#2D7D46] rounded-lg"
+            >
+                Login
+            </Link>
+            </div>
+        )}
+        </header>
     )
     }
