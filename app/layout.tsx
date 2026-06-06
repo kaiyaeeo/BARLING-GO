@@ -1,7 +1,10 @@
   import type { Metadata } from "next";
-  import { Inter } from "next/font/google";
+  import { Inter, Geist } from "next/font/google";
   import "./globals.css";
   import Navbar from "@/components/layout/navbar";
+import { cn } from "@/lib/utils";
+
+const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
   const inter = Inter({ subsets: ["latin"] });
 
@@ -16,7 +19,7 @@
     children: React.ReactNode;
   }>) {
     return (
-      <html lang="id">
+      <html lang="id" className={cn("font-sans", geist.variable)}>
         <body className={inter.className}>
           <Navbar />
           {/* Children adalah isi dari halaman yang sedang dibuka */}
