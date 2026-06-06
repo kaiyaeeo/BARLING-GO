@@ -4,7 +4,7 @@
     const PUBLIC_ROUTES = ['/', '/wisata', '/kuliner', '/oleh-oleh']
     const AUTH_ROUTES = ['/login', '/register', '/forgot-password']
 
-    export async function middleware(request: NextRequest) {
+    export async function proxy(request: NextRequest) {
     const { supabaseResponse, user } = await updateSession(request)
     const { pathname } = request.nextUrl
 
