@@ -11,7 +11,6 @@
         const { data, error } = await supabase.auth.exchangeCodeForSession(code)
 
         if (!error && data.user) {
-        // Tentukan redirect berdasarkan role
         const { data: profile } = await supabase
             .from("profiles")
             .select("role")
@@ -21,17 +20,17 @@
         const role = profile?.role
         let redirectTo = next
 
-        // Kalau next masih "/", arahkan ke dashboard sesuai role
         if (next === "/") {
             if (role === "super_admin") redirectTo = "/super-admin/dashboard"
             else if (role === "admin") redirectTo = "/admin/dashboard"
             else redirectTo = "/dashboard"
         }
-
         return NextResponse.redirect(`${origin}${redirectTo}`)
         }
     }
 
-    // Kalau gagal, redirect ke login dengan error param
-    return NextResponse.redirect(`${origin}/login?error=auth_callback_failed`)
+    // UBAH BAGIAN INI: 
+    // Jika gagal, jangan paksa redirect ke login jika user tidak ada kode (hanya akses biasa)
+    // Kembalikan ke halaman utama saja agar user bisa browsing
+    return NextResponse.redirect(`${origin}/`)
     }
