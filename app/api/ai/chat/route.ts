@@ -28,16 +28,14 @@
         "=== DESTINASI WISATA ===",
         ...(destinations ?? []).map((d) => `- ${d.title} (${d.type}): ${d.description ?? ""} ${d.location ? `· Lokasi: ${d.location}` : ""}`),
         "\n=== PRODUK & KULINER ===",
-        ...(topProducts ?? []).map((p: any) => `- ${p.name} (${p.categories?.name ?? p.categories?.type ?? ""}): Rp ${Number(p.price).toLocaleString("id-ID")}`),
+        ...(topProducts ?? []).map((p: any) => `- ${p.name} (${p.categories?.name ?? p.categories?.type ?? ""}) - Rp ${Number(p.price).toLocaleString("id-ID")}`),
     ].join("\n")
 
-    const systemPrompt = `Kamu adalah AI Assistant Barling-GO, platform wisata dan UMKM untuk kawasan Barlingmascakep (Banyumas, Purbalingga, Cilacap, Kebumen, Banjarnegara) di Jawa Tengah.
-
+    const systemPrompt = `Kamu adalah Barling-GO AI Assistant, pemandu wisata dan kuliner interaktif untuk wilayah Barlingmascakep (Banjarnegara, Purbalingga, Banyumas, Cilacap, Kebumen).
     Tugasmu:
-    - Merekomendasikan destinasi wisata, kuliner, dan oleh-oleh khas Barlingmascakep
-    - Membantu pengguna merencanakan itinerary perjalanan
-    - Menjawab pertanyaan seputar produk dan UMKM lokal
-    - Berbicara ramah, informatif, dan antusias dalam Bahasa Indonesia
+    1. Menjawab pertanyaan seputar pariwisata, makanan khas, dan UMKM di wilayah tersebut.
+    2. Memberikan rekomendasi itinerary (rencana perjalanan) jika diminta.
+    3. Merekomendasikan produk/destinasi yang ada di dalam database.
 
     Data terkini yang kamu miliki:
     ${contextText}
@@ -45,15 +43,24 @@
     Jika ditanya di luar topik wisata/kuliner Barlingmascakep, arahkan kembali ke topik tersebut dengan ramah.
     Jawab secara ringkas dan padat, gunakan emoji secukupnya agar lebih menarik.`
 
+    // Mengubah format pesan agar sesuai dengan standar Gemini API
+    const geminiMessages = messages.map((m: any) => ({
+        role: m.role === "assistant" ? "model" : "user",
+        parts: [{ text: m.content }]
+    }))
+
+    // Menyisipkan instruksi sistem pada awal percakapan
+    if (geminiMessages.length > 0 && geminiMessages[0].role === "user") {
+        geminiMessages[0].parts[0].text = `[Instruksi Sistem: ${systemPrompt}]\n\nPertanyaan pengguna: ${geminiMessages[0].parts[0].text}`
+    }
+
     try {
-        const response = await fetch("https://api.anthropic.com/v1/messages", {
+        const apiKey = process.env.GEMINI_API_KEY
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-            model: "claude-sonnet-4-20250514",
-            max_tokens: 1000,
-            system: systemPrompt,
-            messages: messages.map((m: any) => ({ role: m.role, content: m.content })),
+            contents: geminiMessages
         }),
         })
 
@@ -63,7 +70,7 @@
         }
 
         const data = await response.json()
-        const assistantMessage = data.content?.[0]?.text ?? "Maaf, saya tidak bisa memproses permintaan kamu saat ini."
+        const assistantMessage = data.candidates?.[0]?.content?.parts?.[0]?.text ?? "Maaf, saya sedang tidak bisa merespons saat ini."
 
         // Simpan history jika user login
         if (user && sessionId) {
@@ -75,8 +82,8 @@
         }
 
         return NextResponse.json({ message: assistantMessage })
-    } catch (e: any) {
-        console.error("AI chat error:", e.message)
-        return NextResponse.json({ error: e.message }, { status: 500 })
+    } catch (error: any) {
+        console.error("AI Chat Error:", error)
+        return NextResponse.json({ error: error.message }, { status: 500 })
     }
     }

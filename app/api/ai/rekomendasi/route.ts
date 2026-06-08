@@ -29,7 +29,7 @@
         .eq("orders.user_id", user.id)
         .limit(10)
         if (history?.length) {
-        purchaseContext = `\nHistori pembelian user: ${history.map((h: any) => h.product_name).join(", ")}`
+        purchaseContext = `\nHistori pembelian pengguna: ${history.map((h: any) => h.product_name).join(", ")}`
         }
     }
 
@@ -37,46 +37,47 @@
         .map((p: any) => `${p.name} (${p.categories?.name ?? ""}) - Rp ${Number(p.price).toLocaleString("id-ID")} - rating: ${p.rating}`)
         .join("\n")
 
-    try {
-        const response = await fetch("https://api.anthropic.com/v1/messages", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-            model: "claude-sonnet-4-20250514",
-            max_tokens: 1000,
-            messages: [{
-            role: "user",
-            content: `Berdasarkan daftar produk berikut dan query pengguna, rekomendasikan 4 produk paling relevan.
+    const promptText = `Berdasarkan daftar produk berikut dan kueri pengguna, rekomendasikan 4 produk paling relevan.
             
-    Query: "${query ?? "produk terpopuler"}"
+    Kueri: "${query ?? "produk terpopuler"}"
     ${purchaseContext}
 
     Daftar produk:
     ${productList}
 
-    Respond ONLY dengan JSON array berisi 4 nama produk yang paling relevan, format: ["nama1", "nama2", "nama3", "nama4"]
-    Jangan tambahkan teks lain di luar JSON.`,
-            }],
+    Respond HANYA dengan JSON array berisi tepat 4 nama produk yang paling relevan (sesuai nama asli dari daftar). Format: ["nama1", "nama2", "nama3", "nama4"]. 
+    Jangan tambahkan format markdown, backtick, atau teks lain apa pun di luar array JSON tersebut.`
+
+    try {
+        const apiKey = process.env.GEMINI_API_KEY
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            contents: [{ role: "user", parts: [{ text: promptText }] }]
         }),
         })
 
         const aiData = await response.json()
-        const text = aiData.content?.[0]?.text ?? "[]"
+        const text = aiData.candidates?.[0]?.content?.parts?.[0]?.text ?? "[]"
 
         let recommendedNames: string[] = []
         try {
-        recommendedNames = JSON.parse(text.replace(/```json|```/g, "").trim())
-        } catch { recommendedNames = [] }
+        // Membersihkan teks dari sisa-sisa markdown yang mungkin masih terbuat oleh AI
+        const cleanText = text.replace(/```json|```/g, "").trim()
+        recommendedNames = JSON.parse(cleanText)
+        } catch { 
+        recommendedNames = [] 
+        }
 
-        // Match nama ke produk asli
+        // Match nama ke produk asli di database
         const recommended = recommendedNames
         .map((name: string) => products?.find((p) => p.name.toLowerCase().includes(name.toLowerCase())))
         .filter(Boolean)
-        .slice(0, 4)
 
         return NextResponse.json(recommended)
-    } catch (e: any) {
-        // Fallback: return produk berdasarkan rating tertinggi
-        return NextResponse.json((products ?? []).slice(0, 4))
+    } catch (error: any) {
+        console.error("AI Recommendation Error:", error)
+        return NextResponse.json({ error: error.message }, { status: 500 })
     }
     }
