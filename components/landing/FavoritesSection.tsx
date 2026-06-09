@@ -2,8 +2,8 @@
 
     import Link from "next/link"
     import { useState, useTransition } from "react"
-    import type { Product } from "@/lib/queries/landing"
-    import { getStorageUrl } from "@/lib/queries/landing"
+    import type { Product } from "@/lib/queries/landing-types"
+    import { getStorageUrl } from "@/lib/queries/landing-types"
 
     const PLACEHOLDER = "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=400&q=70"
     const tabs = ["All", "Kuliner", "Wisata", "Oleh-oleh"]
