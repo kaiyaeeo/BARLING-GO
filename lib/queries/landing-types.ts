@@ -1,6 +1,3 @@
-// Tipe & helper yang aman dipakai di Client maupun Server Component.
-// JANGAN impor kode server-only (mis. next/headers) di file ini.
-
 export type Product = {
   id: string
   name: string
