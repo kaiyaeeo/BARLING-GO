@@ -1,15 +1,23 @@
     "use client"
 
-    import { useState } from "react"
+    import { useState, useEffect } from "react"
     import Link from "next/link"
-    import { useRouter } from "next/navigation"
+    import { useRouter, useSearchParams } from "next/navigation"
     import { createClient } from "@/lib/supabase/client"
-    import { Eye, EyeOff, Loader2 } from "lucide-react"
+    import { Eye, EyeOff, Loader2, Store, User } from "lucide-react"
+
+    type Mode = "pengunjung" | "seller"
 
     export default function LoginPage() {
     const router = useRouter()
+    const searchParams = useSearchParams()
     const supabase = createClient()
 
+    // Baca mode dari URL param (?mode=seller) — misal dari redirect middleware
+    const initialMode = (searchParams.get("mode") === "seller" ? "seller" : "pengunjung") as Mode
+    const nextUrl = searchParams.get("next") ?? ""
+
+    const [mode, setMode] = useState<Mode>(initialMode)
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
     const [showPass, setShowPass] = useState(false)
@@ -26,14 +34,14 @@
         if (error) {
         setError(
             error.message === "Invalid login credentials"
-            ? "Email atau password salah."
+            ? "Email atau password salah. Coba lagi."
             : error.message
         )
         setLoading(false)
         return
         }
 
-        // Ambil role lalu redirect ke dashboard yang tepat
+        // Ambil role dari database
         const { data: profile } = await supabase
         .from("profiles")
         .select("role")
@@ -41,52 +49,153 @@
         .single()
 
         const role = profile?.role
-        if (role === "super_admin") router.replace("/super-admin/dashboard")
-        else if (role === "admin") router.replace("/admin/dashboard")
-        else router.replace("/dashboard")
+
+        // Jika mode seller tapi role user, tolak
+        if (mode === "seller" && role === "user") {
+        await supabase.auth.signOut()
+        setError("Akun ini bukan akun Seller/UMKM. Masuk sebagai Pengunjung atau daftar sebagai Seller terlebih dahulu.")
+        setLoading(false)
+        return
+        }
+
+        // Redirect berdasarkan role
+        if (nextUrl) {
+        router.replace(nextUrl)
+        } else if (role === "super_admin") {
+        router.replace("/super-admin/dashboard")
+        } else if (role === "admin") {
+        router.replace("/admin/dashboard")
+        } else {
+        router.replace("/dashboard")
+        }
     }
+
+    async function handleGoogleLogin() {
+        await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+            redirectTo: `${location.origin}/auth/callback`,
+            queryParams: { mode },
+        },
+        })
+    }
+
+    const isSeller = mode === "seller"
 
     return (
         <div className="min-h-screen flex">
-        {/* Left panel — branding */}
-        <div className="hidden lg:flex lg:w-1/2 bg-[#2D7D46] flex-col justify-between p-12">
+        {/* Left branding panel */}
+        <div className={`hidden lg:flex lg:w-5/12 flex-col justify-between p-12 transition-colors duration-300 ${
+            isSeller ? "bg-[#1a3a2a]" : "bg-[#2D7D46]"
+        }`}>
             <Link href="/" className="flex items-center gap-1">
             <span className="text-2xl font-black text-white tracking-tight">BARLING</span>
-            <span className="text-2xl font-black text-[#a8e6bc] tracking-tight">GO</span>
-            <div className="w-2 h-2 rounded-full bg-[#FF6B35] -mt-4 ml-0.5" />
+            <span className="text-2xl font-black text-green-300 tracking-tight">-GO</span>
             </Link>
 
             <div>
-            <h2 className="text-4xl font-black text-white leading-tight mb-4">
-                Selamat datang<br />kembali!
-            </h2>
-            <p className="text-green-100/80 text-base leading-relaxed max-w-sm">
-                Masuk dan lanjutkan petualanganmu di Barlingmascakep bersama ribuan wisatawan lainnya.
-            </p>
+            {isSeller ? (
+                <>
+                <div className="w-14 h-14 rounded-2xl bg-white/15 flex items-center justify-center mb-6">
+                    <Store size={28} className="text-white" />
+                </div>
+                <h2 className="text-4xl font-black text-white leading-tight mb-4">
+                    Kelola toko<br />UMKM-mu<br />dengan mudah.
+                </h2>
+                <p className="text-green-200/80 text-base leading-relaxed max-w-sm">
+                    Dashboard lengkap untuk mengelola produk, pesanan, dan analitik penjualan toko UMKM Barlingmascakep-mu.
+                </p>
+                <div className="mt-8 grid grid-cols-2 gap-3">
+                    {["Manajemen Produk", "Laporan Penjualan", "Kelola Pesanan", "AI Insight"].map((f) => (
+                    <div key={f} className="flex items-center gap-2 text-sm text-green-200">
+                        <div className="w-1.5 h-1.5 rounded-full bg-green-400 shrink-0" />
+                        {f}
+                    </div>
+                    ))}
+                </div>
+                </>
+            ) : (
+                <>
+                <div className="w-14 h-14 rounded-2xl bg-white/15 flex items-center justify-center mb-6">
+                    <User size={28} className="text-white" />
+                </div>
+                <h2 className="text-4xl font-black text-white leading-tight mb-4">
+                    Selamat datang<br />kembali,<br />Penjelajah!
+                </h2>
+                <p className="text-green-100/80 text-base leading-relaxed max-w-sm">
+                    Temukan destinasi wisata, kuliner, dan oleh-oleh khas 5 kabupaten Barlingmascakep favoritmu.
+                </p>
+                <div className="mt-8 grid grid-cols-2 gap-3">
+                    {["Destinasi Wisata", "Kuliner Lokal", "Oleh-Oleh Khas", "AI Travel Plan"].map((f) => (
+                    <div key={f} className="flex items-center gap-2 text-sm text-green-200">
+                        <div className="w-1.5 h-1.5 rounded-full bg-green-400 shrink-0" />
+                        {f}
+                    </div>
+                    ))}
+                </div>
+                </>
+            )}
             </div>
 
-            <p className="text-green-100/50 text-sm">© 2026 Barling-GO</p>
+            <p className="text-green-100/40 text-sm">© 2026 Barling-GO · Rooted in Barlingmascakep</p>
         </div>
 
-        {/* Right panel — form */}
+        {/* Right form panel */}
         <div className="flex-1 flex items-center justify-center px-6 py-12 bg-white">
             <div className="w-full max-w-md">
             {/* Mobile logo */}
             <Link href="/" className="flex items-center gap-1 mb-8 lg:hidden">
                 <span className="text-xl font-black text-gray-900">BARLING</span>
-                <span className="text-xl font-black text-[#2D7D46]">GO</span>
+                <span className="text-xl font-black text-[#2D7D46]">-GO</span>
             </Link>
 
-            <h1 className="text-2xl font-bold text-gray-900 mb-1">Masuk ke akun</h1>
+            {/* Mode toggle */}
+            <div className="flex bg-gray-100 rounded-2xl p-1 mb-8">
+                <button
+                onClick={() => { setMode("pengunjung"); setError(null) }}
+                className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold transition-all ${
+                    !isSeller
+                    ? "bg-white text-gray-900 shadow-sm"
+                    : "text-gray-500 hover:text-gray-700"
+                }`}
+                >
+                <User size={15} /> Pengunjung
+                </button>
+                <button
+                onClick={() => { setMode("seller"); setError(null) }}
+                className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold transition-all ${
+                    isSeller
+                    ? "bg-white text-gray-900 shadow-sm"
+                    : "text-gray-500 hover:text-gray-700"
+                }`}
+                >
+                <Store size={15} /> Seller / UMKM
+                </button>
+            </div>
+
+            <h1 className="text-2xl font-bold text-gray-900 mb-1">
+                {isSeller ? "Masuk ke Dashboard Seller" : "Masuk ke akun"}
+            </h1>
             <p className="text-sm text-gray-500 mb-8">
-                Belum punya akun?{" "}
-                <Link href="/register" className="text-[#2D7D46] font-semibold hover:underline">
-                Daftar sekarang
-                </Link>
+                {isSeller ? (
+                <>
+                    Belum punya akun seller?{" "}
+                    <Link href="/register?mode=seller" className="text-[#2D7D46] font-semibold hover:underline">
+                    Daftar sebagai Seller
+                    </Link>
+                </>
+                ) : (
+                <>
+                    Belum punya akun?{" "}
+                    <Link href="/register" className="text-[#2D7D46] font-semibold hover:underline">
+                    Daftar sekarang
+                    </Link>
+                </>
+                )}
             </p>
 
             {error && (
-                <div className="mb-5 px-4 py-3 bg-red-50 border border-red-200 text-red-600 text-sm rounded-xl">
+                <div className="mb-5 px-4 py-3 bg-red-50 border border-red-200 text-red-600 text-sm rounded-xl leading-relaxed">
                 {error}
                 </div>
             )}
@@ -133,13 +242,18 @@
                 <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-3 bg-[#2D7D46] hover:bg-[#236338] disabled:opacity-60 text-white font-semibold rounded-xl text-sm transition-all flex items-center justify-center gap-2"
+                className={`w-full py-3 font-bold rounded-xl text-sm text-white flex items-center justify-center gap-2 transition-all disabled:opacity-60 ${
+                    isSeller
+                    ? "bg-[#1a3a2a] hover:bg-[#0f2619]"
+                    : "bg-[#2D7D46] hover:bg-[#236338]"
+                }`}
                 >
                 {loading && <Loader2 size={16} className="animate-spin" />}
-                {loading ? "Memproses..." : "Masuk"}
+                {loading ? "Memproses..." : isSeller ? "Masuk sebagai Seller" : "Masuk"}
                 </button>
             </form>
 
+            {/* Divider */}
             <div className="relative my-6">
                 <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-gray-100" />
@@ -149,12 +263,7 @@
 
             {/* Google OAuth */}
             <button
-                onClick={async () => {
-                await supabase.auth.signInWithOAuth({
-                    provider: "google",
-                    options: { redirectTo: `${location.origin}/auth/callback` },
-                })
-                }}
+                onClick={handleGoogleLogin}
                 className="w-full py-3 border border-gray-200 hover:bg-gray-50 rounded-xl text-sm font-medium text-gray-700 flex items-center justify-center gap-3 transition-all"
             >
                 <svg className="w-4 h-4" viewBox="0 0 24 24">
@@ -163,8 +272,24 @@
                 <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
                 <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
                 </svg>
-                Masuk dengan Google
+                {isSeller ? "Lanjutkan dengan Google (Seller)" : "Masuk dengan Google"}
             </button>
+
+            {/* Seller info box */}
+            {isSeller && (
+                <div className="mt-5 p-4 bg-amber-50 border border-amber-200 rounded-xl">
+                <p className="text-xs font-semibold text-amber-800 mb-1">💡 Belum punya akun seller?</p>
+                <p className="text-xs text-amber-700 leading-relaxed">
+                    Daftar sebagai seller, lalu tim kami akan memverifikasi toko UMKM-mu dalam 1x24 jam.
+                </p>
+                <Link
+                    href="/register?mode=seller"
+                    className="inline-block mt-2 text-xs font-bold text-[#2D7D46] hover:underline"
+                >
+                    Daftar sebagai Seller →
+                </Link>
+                </div>
+            )}
             </div>
         </div>
         </div>
