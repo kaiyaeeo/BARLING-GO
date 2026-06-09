@@ -102,7 +102,7 @@
         image_url: null,
         title: "BARLING-GO",
         subtitle: "Jelajahi kuliner khas 5 kabupaten dalam hitungan detik dengan AI",
-            }
+        }
     }
     return data
     }

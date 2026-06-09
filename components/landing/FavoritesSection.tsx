@@ -7,6 +7,7 @@
 
     const PLACEHOLDER = "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=400&q=70"
     const tabs = ["All", "Kuliner", "Wisata", "Oleh-oleh"]
+
     type Props = { initialProducts: Product[] }
 
     export default function FavoritesSection({ initialProducts }: Props) {

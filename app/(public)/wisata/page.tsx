@@ -1,7 +1,7 @@
     import { createClient } from "@/lib/supabase/server"
     import Link from "next/link"
     import { Search, SlidersHorizontal, Heart } from "lucide-react"
-    import Navbar from "@/components/layout/Navbar"
+    import Navbar from "@/components/layout/navbar"
 
     type SearchParams = { q?: string; kabupaten?: string; sort?: string; page?: string }
 

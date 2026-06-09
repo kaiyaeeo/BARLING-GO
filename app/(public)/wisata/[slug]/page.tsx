@@ -1,7 +1,7 @@
     import { createClient } from "@/lib/supabase/server"
     import { notFound } from "next/navigation"
     import Link from "next/link"
-    import Navbar from "@/components/layout/Navbar"
+    import Navbar from "@/components/layout/navbar"
     import SavePlaceButton from "@/components/wisata/SavePlaceButton"
     import ReviewForm from "@/components/wisata/ReviewForm"
     import { MapPin, Clock, Phone, Star, Share2, Sparkles, ExternalLink, ChevronRight } from "lucide-react"
