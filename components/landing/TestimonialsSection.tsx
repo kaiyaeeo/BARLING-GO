@@ -1,4 +1,4 @@
-    import type { Testimonial } from "@/lib/queries/landing"
+    import type { Testimonial } from "@/lib/queries/landing-types"
 
     const avatarColors: Record<string, string> = {
     amber: "bg-amber-100 text-amber-700",

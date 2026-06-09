@@ -4,8 +4,8 @@
     import Image from "next/image"
     import { ChevronLeft, ChevronRight } from "lucide-react"
     import { useRef } from "react"
-    import type { Product } from "@/lib/queries/landing"
-    import { getStorageUrl } from "@/lib/queries/landing"
+    import type { Product } from "@/lib/queries/landing-types"
+    import { getStorageUrl } from "@/lib/queries/landing-types"
 
     const PLACEHOLDER = "https://images.unsplash.com/photo-1625944525533-473f1a3d54e7?w=400&q=70"
 

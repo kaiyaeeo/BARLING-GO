@@ -1,40 +1,11 @@
     import { createClient } from "@/lib/supabase/server"
+    import { type Product, type Testimonial, type SiteStat, type HeroSettings } from "@/lib/queries/landing-types"
 
-    export type Product = {
-    id: string
-    name: string
-    slug: string
-    price: number
-    discount_price: number | null
-    images: string[]
-    is_top_umkm: boolean
-    is_featured: boolean
-    rating: number
-    total_sold: number
-    categories: { name: string; type: string; slug: string } | null
-    }
-
-    export type Testimonial = {
-    id: string
-    name: string
-    avatar_initials: string
-    avatar_color: string
-    rating: number
-    content: string
-    }
-
-    export type SiteStat = {
-    key: string
-    value: string
-    label: string
-    sub_label: string | null
-    }
-
-    export type HeroSettings = {
-    image_url: string | null
-    title: string
-    subtitle: string
-    }
+    // Re-export tipe & helper agar import lama tetap berfungsi
+    export {
+    getStorageUrl,
+    } from "@/lib/queries/landing-types"
+    export type { Product, Testimonial, SiteStat, HeroSettings }
 
     // Ambil produk Top UMKM (is_top_umkm = true, max 8)
     export async function getTopUMKM(): Promise<Product[]> {
@@ -131,16 +102,7 @@
         image_url: null,
         title: "BARLING-GO",
         subtitle: "Jelajahi kuliner khas 5 kabupaten dalam hitungan detik dengan AI",
-        }
+            }
     }
     return data
-    }
-
-    // Helper: ambil public URL foto dari Supabase Storage
-    export function getStorageUrl(bucket: string, path: string | null): string {
-    if (!path) return "/images/placeholder.jpg"
-    if (path.startsWith("http")) return path
-
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-    return `${supabaseUrl}/storage/v1/object/public/${bucket}/${path}`
     }
