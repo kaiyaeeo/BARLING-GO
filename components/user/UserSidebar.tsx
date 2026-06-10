@@ -1,19 +1,20 @@
     "use client"
 
     import Link from "next/link"
-    import { useRouter } from "next/navigation"
+    import { usePathname, useRouter } from "next/navigation"
     import { createClient } from "@/lib/supabase/client"
     import {
-    User, BookOpen, Heart, Star, Settings,
-    HelpCircle, LogOut
+    LayoutDashboard, BookOpen, Heart,
+    Star, Settings, HelpCircle, LogOut, User
     } from "lucide-react"
 
     const navItems = [
-    { href: "/profil",        label: "My Profile",    icon: User },
-    { href: "/pesanan",       label: "Bookings",      icon: BookOpen },
-    { href: "/profil/saved",  label: "Saved Places",  icon: Heart },
-    { href: "/profil/ulasan", label: "Reviews",       icon: Star },
-    { href: "/profil/settings", label: "Settings",    icon: Settings },
+    { href: "/dashboard",       label: "Dashboard",    icon: LayoutDashboard, key: "dashboard" },
+    { href: "/profil",          label: "My Profile",   icon: User,            key: "profil" },
+    { href: "/pesanan",         label: "Bookings",     icon: BookOpen,        key: "pesanan" },
+    { href: "/profil/saved",    label: "Saved Places", icon: Heart,           key: "saved" },
+    { href: "/profil/ulasan",   label: "Reviews",      icon: Star,            key: "ulasan" },
+    { href: "/profil/settings", label: "Settings",     icon: Settings,        key: "settings" },
     ]
 
     type Profile = {
@@ -25,8 +26,9 @@
     export default function UserSidebar({
     profile,
     active,
-    }: { profile: Profile | null; active: string }) {
-    const router = useRouter()
+    }: { profile: Profile | null; active?: string }) {
+    const pathname = usePathname()
+    const router   = useRouter()
     const supabase = createClient()
 
     async function handleLogout() {
@@ -39,9 +41,9 @@
         : "U"
 
     const tierLabel: Record<string, string> = {
-        free: "Tourist Explorer",
+        free:     "Tourist Explorer",
         explorer: "Explorer",
-        pro: "Pro Explorer",
+        pro:      "Pro Explorer",
     }
 
     return (
@@ -50,9 +52,9 @@
             {/* User info */}
             <div className="p-4 border-b border-gray-50">
             <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-full bg-[#2D7D46] flex items-center justify-center text-white font-bold text-sm shrink-0">
+                <div className="w-9 h-9 rounded-full bg-[#2D7D46] flex items-center justify-center text-white font-bold text-sm shrink-0 overflow-hidden">
                 {profile?.avatar_url ? (
-                    <img src={profile.avatar_url} alt="avatar" className="w-full h-full rounded-full object-cover" />
+                    <img src={profile.avatar_url} alt="avatar" className="w-full h-full object-cover" />
                 ) : initials}
                 </div>
                 <div className="min-w-0">
@@ -64,11 +66,13 @@
             </div>
             </div>
 
-            {/* Nav items */}
+            {/* Nav */}
             <nav className="p-2">
             {navItems.map((item) => {
                 const Icon = item.icon
-                const isActive = active === item.href.replace("/profil/", "").replace("/profil", "profil").replace("/pesanan", "pesanan")
+                const isActive = active
+                ? active === item.key
+                : pathname === item.href || pathname.startsWith(item.href + "/")
                 return (
                 <Link
                     key={item.href}
@@ -86,9 +90,8 @@
             })}
             </nav>
 
-            {/* Bottom actions */}
+            {/* Bottom */}
             <div className="p-2 border-t border-gray-50">
-            {/* Upgrade banner */}
             {(profile?.membership_tier ?? "free") === "free" && (
                 <div className="mx-1 mb-2 p-2.5 bg-orange-50 rounded-xl border border-orange-100">
                 <p className="text-[11px] font-semibold text-orange-700 mb-1.5">Pro Explorer Plan</p>
@@ -97,8 +100,10 @@
                 </button>
                 </div>
             )}
-
-            <Link href="/bantuan" className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm text-gray-500 hover:bg-gray-50 transition-all">
+            <Link
+                href="/bantuan"
+                className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm text-gray-500 hover:bg-gray-50 transition-all"
+            >
                 <HelpCircle size={15} /> Help Center
             </Link>
             <button
