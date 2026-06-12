@@ -8,6 +8,7 @@
     Loader2, Save, Wallet, Server, Check,
     Bell, FileText, Send, Lock, Clock, LogOut, Edit2, Plus
     } from "lucide-react"
+    import BackupDataTab from "@/components/super-admin/BackupDataTab"
 
     type Tab = "umum" | "pembayaran" | "notifikasi" | "keamanan" | "backup"
 
@@ -424,11 +425,9 @@
                 )}
 
                 {/* TAB BACKUP (Loading placeholder) */}
+                 {/* TAB BACKUP */}
                 {activeTab === "backup" && (
-                <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center text-gray-500 animate-in fade-in">
-                    <Loader2 size={32} className="animate-spin mx-auto text-[#2D7D46] mb-4" />
-                    <p>Memuat modul Backup Data...</p>
-                </div>
+                    <BackupDataTab />
                 )}
 
             </div>
