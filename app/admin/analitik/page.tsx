@@ -1,6 +1,6 @@
     import { createClient } from "@/lib/supabase/server"
     import { redirect } from "next/navigation"
-    import { RevenueChart, OrdersChart } from "@/components/admin/charts/SalesCharts"
+    import { RevenueChart, OrdersChart } from "@/components/analytics/SalesCharts"
 
     export default async function AdminAnalitikPage() {
     const supabase = await createClient()

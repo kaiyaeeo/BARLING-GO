@@ -1,20 +1,25 @@
-    import { createClient } from "@/lib/supabase/server"
-    import Link from "next/link"
-    import { Plus, Search, Star, TrendingUp, Map } from "lucide-react"
-    import ContentPublishToggle from "@/components/super-admin/ContentPublishToggle"
-    import ContentDeleteButton from "@/components/super-admin/ContentDeleteButton"
+import { createClient } from "@/lib/supabase/server"
+import Link from "next/link"
+import { Plus, Search, Star, TrendingUp, Map } from "lucide-react"
+import ContentPublishToggle from "@/components/super-admin/ContentPublishToggle"
+import ContentDeleteButton from "@/components/super-admin/ContentDeleteButton"
 
-    type SearchParams = { q?: string; kabupaten?: string; kategori?: string; page?: string }
+// 1. PERBAIKAN: Tipe SearchParams diubah menjadi Promise (Standar Next.js 15+)
+type SearchParams = Promise<{ [key: string]: string | undefined }>
 
-    const KABUPATEN_OPTS = ["Semua Kabupaten","Banjarnegara","Purbalingga","Banyumas","Cilacap","Kebumen"]
-    const KATEGORI_OPTS  = ["Semua","Alam","Budaya","Buatan"]
+const KABUPATEN_OPTS = ["Semua Kabupaten","Banjarnegara","Purbalingga","Banyumas","Cilacap","Kebumen"]
+const KATEGORI_OPTS  = ["Semua","Alam","Budaya","Buatan"]
 
-    export default async function KelolaWisataPage({ searchParams }: { searchParams: SearchParams }) {
+export default async function KelolaWisataPage({ searchParams }: { searchParams: SearchParams }) {
     const supabase  = await createClient()
-    const q         = searchParams.q         ?? ""
-    const kabupaten = searchParams.kabupaten ?? "Semua Kabupaten"
-    const kategori  = searchParams.kategori  ?? "Semua"
-    const page      = parseInt(searchParams.page ?? "1")
+    
+    // 2. PERBAIKAN: Wajib di-await sebelum dibaca isinya
+    const params    = await searchParams
+    const q         = params.q         ?? ""
+    const kabupaten = params.kabupaten ?? "Semua Kabupaten"
+    const kategori  = params.kategori  ?? "Semua"
+    const page      = parseInt(params.page ?? "1")
+    
     const perPage   = 5
     const from      = (page - 1) * perPage
 
@@ -49,10 +54,10 @@
     const PLACEHOLDER = "https://images.unsplash.com/photo-1588392382834-a891154bca4d?w=200&q=60"
 
     function buildUrl(overrides: Record<string,string>) {
-        const params: Record<string,string> = { kabupaten, kategori, page:"1" }
-        if (q) params.q = q
-        Object.assign(params, overrides)
-        return `/super-admin/kelola-wisata?${new URLSearchParams(params)}`
+        const urlParams: Record<string,string> = { kabupaten, kategori, page:"1" }
+        if (q) urlParams.q = q
+        Object.assign(urlParams, overrides)
+        return `/super-admin/kelola-wisata?${new URLSearchParams(urlParams)}`
     }
 
     return (
@@ -117,8 +122,8 @@
                 <TrendingUp size={18} className="text-blue-500" />
                 </div>
                 <div>
-                <p className="text-xs text-gray-400">Pertumbuhan Pengunjung (Bulan Ini)</p>
-                <p className="text-lg font-black text-green-600">+12.4% <span className="text-xs font-normal text-gray-400">Wisatawan Domestik</span></p>
+                <p className="text-xs text-gray-400">Pertumbuhan Pengunjung</p>
+                <p className="text-lg font-black text-green-600">+12.4% <span className="text-xs font-normal text-gray-400">Bulan Ini</span></p>
                 </div>
             </div>
             </div>
@@ -127,14 +132,17 @@
             <div className="flex items-center gap-3 mb-5 flex-wrap">
             {/* Kabupaten dropdown */}
             <div className="relative">
-                <form method="GET">
+                <form method="GET" className="flex items-center gap-2">
                 {q && <input type="hidden" name="q" value={q} />}
                 {kategori !== "Semua" && <input type="hidden" name="kategori" value={kategori} />}
                 <select name="kabupaten" defaultValue={kabupaten}
-                    onChange={(e) => e.currentTarget.form?.submit()}
                     className="pl-4 pr-8 py-2 text-sm border border-gray-200 rounded-xl bg-white focus:outline-none cursor-pointer appearance-none">
                     {KABUPATEN_OPTS.map((k) => <option key={k} value={k}>{k}</option>)}
                 </select>
+                {/* 3. PERBAIKAN: Menambahkan tombol submit karena onChange dihapus */}
+                <button type="submit" className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-sm font-semibold text-gray-700 rounded-xl border border-gray-200 transition-all">
+                    Terapkan
+                </button>
                 </form>
             </div>
 
@@ -254,4 +262,4 @@
         </div>
         </main>
     )
-    }
+}

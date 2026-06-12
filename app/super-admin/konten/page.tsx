@@ -1,6 +1,6 @@
     import { createClient } from "@/lib/supabase/server"
     import Link from "next/link"
-    import ContentToggle from "@/components/super-admin/ContentToggle"
+    import ContentToggle from "@/components/super-admin/ContentPublishToggle"
     import { FileText, Plus, Eye, EyeOff } from "lucide-react"
 
     export default async function SuperAdminKontenPage() {
