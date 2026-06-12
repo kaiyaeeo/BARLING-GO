@@ -5,10 +5,13 @@
     import { useRouter } from "next/navigation"
     import { 
     Info, CreditCard, Mail, Shield, Database, 
-    Loader2, Save, Wallet, Server, Check,
+    Loader2, Save, Server, Check,
     Bell, FileText, Send, Lock, Clock, LogOut, Edit2, Plus
     } from "lucide-react"
+
+    // Import komponen terpisah kita
     import BackupDataTab from "@/components/super-admin/BackupDataTab"
+    import PembayaranTab from "@/components/super-admin/PembayaranTab"
 
     type Tab = "umum" | "pembayaran" | "notifikasi" | "keamanan" | "backup"
 
@@ -26,14 +29,6 @@
         slogan: "Temukan Pesona Barlingmascakep",
         email: "support@barling-go.com",
         isOnline: true
-    })
-
-    // State Tab 2: Pembayaran
-    const [formBayar, setFormBayar] = useState({
-        komisi: "10", biayaLayanan: "2.500", minPenarikan: "50.000",
-        isPpnActive: false, provider: "Midtrans", clientKey: "SB-Mid-client-XXXXX-XXXXX",
-        serverKey: "SB-Mid-server-XXXXX-XXXXX", isProduction: true,
-        methods: { va: true, qris: true, ewallet: true, creditCard: false }
     })
 
     // State Tab 3: Notifikasi
@@ -74,10 +69,6 @@
         }, 800)
     }
 
-    const toggleMethod = (key: keyof typeof formBayar.methods) => {
-        setFormBayar(prev => ({ ...prev, methods: { ...prev.methods, [key]: !prev.methods[key] } }))
-    }
-
     const toggleNotif = (setting: keyof typeof formNotif, type: 'push' | 'email') => {
         setFormNotif(prev => ({
         ...prev,
@@ -91,7 +82,7 @@
         <main className="min-h-screen bg-gray-50/50 p-6">
         <div className="max-w-6xl mx-auto">
             
-            {/* Header (Berubah sesuai tab aktif) */}
+            {/* Header */}
             <div className="mb-8">
             <h1 className="text-2xl font-bold text-gray-900">
                 {activeTab === "umum" && "Pengaturan Platform"}
@@ -102,15 +93,16 @@
             </h1>
             <p className="text-sm text-gray-500 mt-1">
                 {activeTab === "umum" && "Kelola konfigurasi global, preferensi sistem, dan keamanan platform Barling-GO."}
-                {activeTab === "pembayaran" && "Kelola rincian komisi platform, biaya layanan, dan konfigurasi gerbang pembayaran."}
+                {activeTab === "pembayaran" && "Kelola rincian komisi platform, biaya layanan, dan konfigurasi gerbang pembayaran (payment gateway)."}
                 {activeTab === "notifikasi" && "Kelola preferensi notifikasi sistem, template email, dan konfigurasi server pengiriman (SMTP)."}
                 {activeTab === "keamanan" && "Kelola konfigurasi sistem, kebijakan keamanan, dan preferensi operasional Barling-GO."}
+                {activeTab === "backup" && "Kelola integritas data sistem Barling-GO melalui penjadwalan backup otomatis, pencadangan manual, dan pemulihan poin data."}
             </p>
             </div>
 
             <div className="flex flex-col md:flex-row gap-8">
             
-            {/* Left Sidebar (Tabs) */}
+            {/* Left Sidebar (Tabs Menu) */}
             <div className="w-full md:w-64 shrink-0">
                 <nav className="flex flex-col gap-1">
                 {(["umum", "pembayaran", "notifikasi", "keamanan", "backup"] as Tab[]).map((tab) => {
@@ -168,43 +160,14 @@
                 </form>
                 )}
 
-                {/* TAB: PEMBAYARAN */}
+                {/* TAB: PEMBAYARAN (DIPANGGIL DARI KOMPONEN EXTERNAL) */}
                 {activeTab === "pembayaran" && (
-                <form onSubmit={handleSave} className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in duration-300">
-                    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-6">
-                    <div className="flex items-center gap-3 border-b border-gray-100 pb-4">
-                        <div className="w-8 h-8 rounded-lg bg-green-50 text-[#2D7D46] flex items-center justify-center"><Wallet size={16} /></div>
-                        <h2 className="text-base font-bold text-gray-900">Skema Komisi & Biaya Layanan</h2>
-                    </div>
-                    <div>
-                        <label className="block text-sm font-semibold text-gray-800 mb-1">Komisi Platform (%)</label>
-                        <input type="text" value={formBayar.komisi} onChange={e => setFormBayar({...formBayar, komisi: e.target.value})} className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:ring-2 focus:ring-[#2D7D46]/20" />
-                    </div>
-                    </div>
-                    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-6">
-                    <div className="flex items-center gap-3 border-b border-gray-100 pb-4">
-                        <div className="w-8 h-8 rounded-lg bg-[#2D7D46]/10 text-[#2D7D46] flex items-center justify-center"><Server size={16} /></div>
-                        <h2 className="text-base font-bold text-gray-900">Konfigurasi Payment Gateway</h2>
-                    </div>
-                    <div>
-                        <label className="block text-sm font-semibold text-gray-800 mb-1">Penyedia Layanan</label>
-                        <select value={formBayar.provider} onChange={e => setFormBayar({...formBayar, provider: e.target.value})} className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm bg-white">
-                        <option value="Midtrans">Midtrans</option><option value="Manual">Manual</option>
-                        </select>
-                    </div>
-                    </div>
-                    <div className="md:col-span-2 flex justify-end gap-3 mt-2">
-                    <button type="submit" disabled={isSaving} className="flex items-center gap-2 px-6 py-2.5 bg-[#2D7D46] text-white font-semibold text-sm rounded-xl">
-                        {isSaving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />} Simpan Konfigurasi
-                    </button>
-                    </div>
-                </form>
+                <PembayaranTab />
                 )}
 
                 {/* TAB: NOTIFIKASI */}
                 {activeTab === "notifikasi" && (
                 <form onSubmit={handleSave} className="space-y-6 animate-in fade-in duration-300">
-                    {/* Section 1: Pengaturan Notifikasi Sistem */}
                     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
                     <div className="flex items-center gap-3 border-b border-gray-100 pb-4 mb-5">
                         <Bell size={18} className="text-[#2D7D46]" />
@@ -319,8 +282,6 @@
                 {/* TAB: KEAMANAN */}
                 {activeTab === "keamanan" && (
                 <form onSubmit={handleSave} className="space-y-6 animate-in fade-in duration-300">
-                    
-                    {/* Kebijakan Password */}
                     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
                     <div className="flex items-center justify-between border-b border-gray-100 pb-4 mb-5">
                         <div>
@@ -363,7 +324,6 @@
                     </div>
                     </div>
 
-                    {/* Keamanan Tambahan */}
                     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
                     <div className="border-b border-gray-100 pb-4 mb-5">
                         <h2 className="text-base font-bold text-gray-900">Keamanan Tambahan</h2>
@@ -395,7 +355,6 @@
                     </div>
                     </div>
 
-                    {/* Manajemen Sesi */}
                     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
                     <div className="border-b border-gray-100 pb-4 mb-5">
                         <h2 className="text-base font-bold text-gray-900">Manajemen Sesi</h2>
@@ -424,10 +383,9 @@
                 </form>
                 )}
 
-                {/* TAB BACKUP (Loading placeholder) */}
-                 {/* TAB BACKUP */}
+                {/* TAB: BACKUP DATA (DIPANGGIL DARI KOMPONEN EXTERNAL) */}
                 {activeTab === "backup" && (
-                    <BackupDataTab />
+                <BackupDataTab />
                 )}
 
             </div>
