@@ -1,6 +1,7 @@
     "use client"
 
     import Link from "next/link"
+    import Image from "next/image" // Tambahan import untuk Image
     import { useState, useEffect } from "react"
     import { Menu, X, Search, LogOut, User, LayoutDashboard, Bell, ChevronDown } from "lucide-react"
     import { createClient } from "@/lib/supabase/client"
@@ -67,10 +68,17 @@
         <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? "bg-white/95 backdrop-blur-md shadow-sm" : "bg-white"}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between h-16">
-            {/* Logo */}
+            
+            {/* BAGIAN LOGO YANG SUDAH DIREVISI */}
             <Link href="/" className="flex items-center shrink-0">
-                <span className="text-xl font-black text-gray-900 tracking-tight">BARLING</span>
-                <span className="text-xl font-black text-[#2D7D46] tracking-tight">-GO</span>
+                <Image 
+                src="/logo.png" 
+                alt="Logo Barling-GO" 
+                width={192} // Sesuaikan angka ini untuk mengatur lebar logo
+                height={72} // Sesuaikan angka ini untuk mengatur tinggi logo
+                className="object-contain"
+                priority
+                />
             </Link>
 
             {/* Desktop nav */}
