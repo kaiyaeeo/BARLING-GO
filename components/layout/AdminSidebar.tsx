@@ -64,7 +64,9 @@
             <p className="px-4 text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">Menu</p>
             {MENU_ITEMS.map((item) => {
             const Icon = item.icon
-            const active = pathname === item.href || (item.href !== "/admin/dashboard" && pathname.startsWith(item.href) && item.href.length > 12)
+            const isExact = pathname === item.href
+            const isSubRoute = pathname.startsWith(item.href + "/") && !MENU_ITEMS.some(m => m.href !== item.href && pathname.startsWith(m.href))
+            const active = isExact || isSubRoute
             return (
                 <Link
                 key={item.href}
