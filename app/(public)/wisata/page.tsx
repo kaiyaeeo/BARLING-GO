@@ -1,7 +1,8 @@
     import { createClient } from "@/lib/supabase/server"
     import Link from "next/link"
-    import { Search, SlidersHorizontal, Heart } from "lucide-react"
+    import { Search, SlidersHorizontal } from "lucide-react"
     import Navbar from "@/components/layout/navbar"
+    import { SortDropdown, HeartButton } from "@/components/ui/WisataClient" // <-- Import komponen interaktif
 
     type SearchParams = { q?: string; kabupaten?: string; sort?: string; page?: string }
 
@@ -91,16 +92,9 @@
                 <form method="GET">
                     {q && <input type="hidden" name="q" value={q} />}
                     {kabupaten !== "Semua" && <input type="hidden" name="kabupaten" value={kabupaten} />}
-                    <select
-                    name="sort"
-                    defaultValue={sort}
-                    onChange={(e) => e.currentTarget.form?.submit()}
-                    className="pl-4 pr-8 py-2 text-sm font-medium text-gray-700 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-1 focus:ring-[#2D7D46] appearance-none cursor-pointer"
-                    >
-                    {SORT_OPTIONS.map((opt) => (
-                        <option key={opt.value} value={opt.value}>{opt.label}</option>
-                    ))}
-                    </select>
+                    
+                    {/* Menggunakan Client Component yang baru dibuat */}
+                    <SortDropdown sort={sort} options={SORT_OPTIONS} />
                 </form>
                 </div>
             </div>
@@ -146,12 +140,6 @@
                     )
                 })}
                 {totalPages > 5 && <span className="text-gray-400 text-sm">...</span>}
-                {totalPages > 5 && (
-                    <Link href={`/wisata?kabupaten=${kabupaten}&sort=${sort}&page=${totalPages}${q ? `&q=${q}` : ""}`}
-                    className="w-10 h-10 flex items-center justify-center rounded-full border border-gray-200 text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-all">
-                    {totalPages}
-                    </Link>
-                )}
                 {page < totalPages && (
                     <Link href={`/wisata?kabupaten=${kabupaten}&sort=${sort}&page=${page + 1}${q ? `&q=${q}` : ""}`}
                     className="w-10 h-10 flex items-center justify-center rounded-full border border-gray-200 text-gray-500 hover:bg-gray-50 transition-all">
@@ -160,6 +148,7 @@
                 )}
                 </div>
             )}
+
             </div>
 
             {/* Footer */}
@@ -192,7 +181,7 @@
     const hasPrice = dest.ticket_price_min > 0 || dest.ticket_price_max > 0
 
     return (
-        <Link href={`/wisata/${dest.slug}`} className="group block">
+        <Link href={`/wisata/${dest.slug}`} className="group block relative">
         <div className="relative rounded-2xl overflow-hidden aspect-[4/3] mb-3">
             <img
             src={imgSrc}
@@ -201,17 +190,13 @@
             />
             {/* Terlaris badge */}
             {dest.review_count >= 10 && (
-            <span className="absolute top-2.5 left-2.5 text-xs font-bold text-white bg-[#FF6B35] px-2.5 py-1 rounded-full">
+            <span className="absolute top-2.5 left-2.5 text-xs font-bold text-white bg-[#FF6B35] px-2.5 py-1 rounded-full z-10">
                 Terlaris
             </span>
             )}
-            {/* Save button */}
-            <button
-            onClick={(e) => { e.preventDefault() }}
-            className="absolute top-2.5 right-2.5 w-8 h-8 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow hover:bg-white transition-all"
-            >
-            <Heart size={14} className="text-gray-500" />
-            </button>
+            
+            {/* Menggunakan Client Component untuk tombol love agar tidak error onClick */}
+            <HeartButton />
         </div>
 
         <div>

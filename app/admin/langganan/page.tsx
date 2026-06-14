@@ -4,25 +4,87 @@
     import { useRouter } from "next/navigation"
     import { ArrowLeft, Star, Crown, CheckCircle2, ShieldCheck, Loader2 } from "lucide-react"
     import Link from "next/link"
+    import { createClient } from "@/lib/supabase/client" // <-- WAJIB IMPORT INI
 
     export default function HalamanLangganan() {
     const router = useRouter()
     const [selectedPlan, setSelectedPlan] = useState<"premium" | "vip" | null>(null)
     const [isProcessing, setIsProcessing] = useState(false)
+    const supabase = createClient() // <-- Inisialisasi Supabase
 
-    // Simulasi pemanggilan API Midtrans Snap
-    const handlePayment = () => {
+    // Fungsi untuk menyimpan status paket ke Supabase
+    const updateSubscriptionStatus = async (plan: string) => {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) return
+
+        const { error } = await supabase
+        .from("profiles")
+        .update({ 
+            promo_package: plan,
+            updated_at: new Date().toISOString()
+        })
+        .eq("id", user.id)
+
+        if (error) {
+        console.error("Gagal sinkronisasi data ke database:", error.message)
+        }
+    }
+
+    const handlePayment = async () => {
+        if (!selectedPlan) return
         setIsProcessing(true)
-        
-        // Dalam implementasi asli, di sini kamu akan memanggil endpoint backend (misal: /api/payment)
-        // untuk mendapatkan transaction_token, lalu menjalankan window.snap.pay(token)
-        
-        setTimeout(() => {
+
+        try {
+        // 1. Panggil API Route Checkout
+        const response = await fetch("/api/checkout", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+            orderId: `PROMO-${Date.now()}`,
+            grossAmount: selectedPlan === "premium" ? 55500 : 166500,
+            customerDetails: {
+                first_name: "Merchant Barling-GO",
+                email: "merchant@barlinggo.com"
+            },
+            itemDetails: [{
+                id: selectedPlan,
+                price: selectedPlan === "premium" ? 55500 : 166500,
+                quantity: 1,
+                name: `Paket Langganan ${selectedPlan.toUpperCase()}`
+            }]
+            })
+        })
+
+        const txData = await response.json()
+
+        if (txData.token) {
+            // 2. Buka popup Midtrans Snap
+            (window as any).snap.pay(txData.token, {
+            onSuccess: async function (result: any) {
+                // Panggil fungsi untuk update status ke Supabase
+                await updateSubscriptionStatus(selectedPlan)
+                alert("Pembayaran sukses! Akun Anda telah ditingkatkan.")
+                router.push("/admin/toko")
+                router.refresh()
+            },
+            onPending: function (result: any) {
+                alert("Menunggu pembayaran Anda.");
+            },
+            onError: function (result: any) {
+                alert("Pembayaran gagal, silakan coba lagi.");
+            },
+            onClose: function () {
+                alert("Anda menutup halaman pembayaran sebelum selesai.");
+            }
+            })
+        } else {
+            alert("Gagal mendapatkan token transaksi Midtrans.")
+        }
+        } catch (err) {
+        alert("Terjadi kesalahan sistem pembayaran.")
+        } finally {
         setIsProcessing(false)
-        // Simulasi berhasil dan redirect kembali ke profil
-        alert("Simulasi Pembayaran Midtrans Berhasil! Paket Anda telah diperbarui.")
-        router.push("/admin/toko")
-        }, 2000)
+        }
     }
 
     return (
@@ -50,7 +112,7 @@
                     <div className="w-12 h-12 bg-yellow-100 text-yellow-600 rounded-xl flex items-center justify-center"><Star size={24} /></div>
                     <div>
                     <h2 className="text-lg font-bold text-gray-900">Premium Partner</h2>
-                    <p className="text-sm text-gray-500">Rp 50.000 <span className="text-xs">/ bulan</span></p>
+                    <p className="text-sm text-gray-500">Rp 55.500 <span className="text-xs">/ bulan (Inc. PPN)</span></p>
                     </div>
                 </div>
                 <ul className="space-y-3 mt-4 border-t border-gray-100 pt-4">
@@ -72,7 +134,7 @@
                     <div className="w-12 h-12 bg-gray-900 text-yellow-400 rounded-xl flex items-center justify-center"><Crown size={24} /></div>
                     <div>
                     <h2 className="text-lg font-bold text-gray-900">VIP Prioritas</h2>
-                    <p className="text-sm text-gray-500">Rp 150.000 <span className="text-xs">/ bulan</span></p>
+                    <p className="text-sm text-gray-500">Rp 166.500 <span className="text-xs">/ bulan (Inc. PPN)</span></p>
                     </div>
                 </div>
                 <ul className="space-y-3 mt-4 border-t border-gray-100 pt-4">
@@ -130,7 +192,6 @@
                     </button>
                     
                     <div className="flex items-center justify-center gap-2 mt-4 opacity-50 grayscale">
-                        {/* Placeholder Logo Payment Gateway (Bisa diganti image asli) */}
                         <span className="text-xs font-bold font-mono border px-2 py-1 rounded">MIDTRANS</span>
                         <span className="text-xs font-bold font-mono border px-2 py-1 rounded">QRIS</span>
                         <span className="text-xs font-bold font-mono border px-2 py-1 rounded">GOPAY</span>

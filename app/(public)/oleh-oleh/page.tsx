@@ -1,7 +1,8 @@
     import { createClient } from "@/lib/supabase/server"
     import Link from "next/link"
-    import Navbar from "@/components/layout/Navbar"
-    import { Search, SlidersHorizontal, Heart, MapPin, ShoppingBag } from "lucide-react"
+    import Navbar from "@/components/layout/navbar"
+    import { Search, SlidersHorizontal, MapPin, ShoppingBag } from "lucide-react"
+    import { SortDropdown, HeartButton } from "@/components/ui/WisataClient"
 
     type SearchParams = { q?: string; kabupaten?: string; kategori?: string; sort?: string; page?: string }
 
@@ -169,11 +170,10 @@
                     {q && <input type="hidden" name="q" value={q} />}
                     {kabupaten !== "Semua" && <input type="hidden" name="kabupaten" value={kabupaten} />}
                     {kategori && <input type="hidden" name="kategori" value={kategori} />}
-                    <select name="sort" defaultValue={sort}
-                    onChange={(e) => e.currentTarget.form?.submit()}
-                    className="pl-3 pr-8 py-2 text-sm border border-gray-200 rounded-xl bg-white focus:outline-none cursor-pointer appearance-none">
-                    {SORT_OPTS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-                    </select>
+                    
+                    {/* MENGGUNAKAN KOMPONEN DROPDOWN */}
+                    <SortDropdown sort={sort} options={SORT_OPTS} />
+
                 </form>
                 </div>
             </div>
@@ -188,17 +188,17 @@
             ) : (
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5">
                 {items.map((item) => (
-                    <Link key={item.id} href={itemHref(item)} className="group block bg-white border border-gray-100 rounded-2xl overflow-hidden hover:shadow-lg transition-all">
+                    <Link key={item.id} href={itemHref(item)} className="group block bg-white border border-gray-100 rounded-2xl overflow-hidden hover:shadow-lg transition-all relative">
                     <div className="relative aspect-[4/3] overflow-hidden">
                         <img src={imgSrc(item)} alt={item.title}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                         {(item.sold ?? 0) >= 5 && (
-                        <span className="absolute top-2.5 left-2.5 text-xs font-bold text-white bg-amber-500 px-2.5 py-1 rounded-full">Terlaris</span>
+                        <span className="absolute top-2.5 left-2.5 text-xs font-bold text-white bg-amber-500 px-2.5 py-1 rounded-full z-10">Terlaris</span>
                         )}
-                        <button onClick={(e) => e.preventDefault()}
-                        className="absolute top-2.5 right-2.5 w-8 h-8 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow hover:bg-white transition-all">
-                        <Heart size={14} className="text-gray-400" />
-                        </button>
+                        
+                        {/* MENGGUNAKAN KOMPONEN TOMBOL FAVORIT */}
+                        <HeartButton />
+
                     </div>
                     <div className="p-4">
                         <p className="text-xs font-bold text-amber-600 uppercase tracking-wide mb-1">OLEH-OLEH</p>

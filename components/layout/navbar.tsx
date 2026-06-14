@@ -74,8 +74,8 @@
                 <Image 
                 src="/logo.png" 
                 alt="Logo Barling-GO" 
-                width={192} // Sesuaikan angka ini untuk mengatur lebar logo
-                height={72} // Sesuaikan angka ini untuk mengatur tinggi logo
+                width={160} // Sesuaikan angka ini untuk mengatur lebar logo
+                height={60} // Sesuaikan angka ini untuk mengatur tinggi logo
                 className="object-contain"
                 priority
                 />
@@ -107,7 +107,7 @@
                         value={searchVal}
                         onChange={(e) => setSearchVal(e.target.value)}
                         onKeyDown={(e) => e.key === "Escape" && setSearchOpen(false)}
-                        placeholder="Explore Java..."
+                        placeholder="Explore Barlingmascakep..."
                         className="pl-9 pr-4 py-2 text-sm rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#2D7D46]/30 focus:border-[#2D7D46] w-52"
                     />
                     </div>
